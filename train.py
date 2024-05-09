@@ -72,6 +72,9 @@ def train_model(dataloader):
             optimizer.step()
             print(f"Epoch {epoch}, Loss: {loss.item()}")
 
+    # 保存模型
+    torch.save(model.state_dict(), 'model.pth')
+
 # 主程序
 if __name__ == '__main__':
     root_dir = 'D:/PycharmProjects/pythonProject/MultipleModal/csv/C'
