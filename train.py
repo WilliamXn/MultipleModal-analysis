@@ -55,13 +55,22 @@ def create_datasets(root_dir):
     return dataloader
 
 # 模型训练
+from torchsummary import summary
+
+# 模型训练
 def train_model(dataloader):
     model = MultiModalViT()
     model.train()
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
+    # 打印模型结构
+    print(summary(model, [(42,), (36,)]))
+
     for epoch in range(2):  # 简单训练两个epoch
+        total_loss = 0
+        total_correct = 0
+        total_samples = 0
         for batch in dataloader:
             data = batch['data']
             labels = batch['label'].long()  # 转换标签为LongTensor
@@ -70,12 +79,31 @@ def train_model(dataloader):
             loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
-            print(f"Epoch {epoch}, Loss: {loss.item()}")
+            total_loss += loss.item()
+            _, predicted = torch.max(output, 1)
+            total_correct += (predicted == labels).sum().item()
+            total_samples += labels.size(0)
+        avg_loss = total_loss / len(dataloader)
+        accuracy = total_correct / total_samples
+        print(f"Epoch {epoch}, Loss: {avg_loss}, Accuracy: {accuracy}")
 
     # 保存模型
     torch.save(model.state_dict(), 'model.pth')
 
-# 主程序
+    # 从数据集中选择一个样本
+    sample = next(iter(dataloader))
+    data = sample['data']
+    labels = sample['label']
+
+    # 使用模型进行预测
+    model.eval()
+    with torch.no_grad():
+        output = model(data[:, :42], data[:, 42:])
+    _, predicted = torch.max(output, 1)
+
+    # 打印预测结果
+    print(f"Predicted: {predicted}, Actual: {labels}")
+
 if __name__ == '__main__':
     root_dir = 'D:/PycharmProjects/pythonProject/MultipleModal/csv/C'
     dataloader = create_datasets(root_dir)
