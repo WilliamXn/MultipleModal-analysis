@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import os
 import subprocess
+from utils import process_line
 
 def chordgram(y_, sr_, hop_length):
     y_harmonic, y_percussive = librosa.effects.hpss(y_)
@@ -54,8 +55,11 @@ def record_data(chord: str, chord_path: str, video_folder: str, hop_length: int)
                         if results.multi_hand_landmarks:
                             for handLms in results.multi_hand_landmarks:
                                 w, h, _ = img.shape
-                                hand_data = np.array([[lm.x * w, lm.y * h] for lm in handLms.landmark]).flatten()
-
+                                hand_data = [[lm.x, lm.y] for lm in handLms.landmark] # [[12, 33], [33, 121], ...]
+                                print("处理前: ", hand_data)
+                                hand_data = process_line(hand_data) # [1.2, 2.2, ...] 
+                                hand_data = np.array(hand_data)
+                                print("处理后: ", hand_data)
                                 # 获取对应时间的三帧音频数据
                                 audio_data = chroma[audio_frame_index:audio_frame_index + 3].flatten()
 
@@ -73,7 +77,7 @@ def record_data(chord: str, chord_path: str, video_folder: str, hop_length: int)
     print(f"Data saved at: {chord_path}")
 
 # 示例用法
-video_folder = "D:\\PycharmProjects\\pythonProject\\MultipleModal\\video\\C"
+video_folder = "./video/C"
 chord = "C"
 chord_path = "csv/C/C.csv"
 hop_length = 512
