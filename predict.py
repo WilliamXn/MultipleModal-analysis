@@ -8,7 +8,7 @@ import subprocess
 
 import torch
 
-from train import MultiModalViT
+from train_vit import MultiModalViT
 
 
 def chordgram(y_, sr_, hop_length):
